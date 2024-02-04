@@ -1,0 +1,16 @@
+{
+	"name": "curso-nodejs-midu",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"dev:1": "node --watch 1.htpp.js",
+		"dev:2": "node --watch 2.routing.js",
+		"dev:3": "node --watch 3.express.js"
+	},
+	"author": "Krapp Ramiro",
+	"license": "ISC",
+	"dependencies": {
+		"express": "4.18.2"
+	}
+}
