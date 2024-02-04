@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const movies = require("./movies.json");
 const { validateMovie, validatePartialMovie } = require("./schemas/movies");
 
@@ -6,21 +7,30 @@ const PORT = process.env.PORT ?? 1234;
 
 const app = express();
 app.use(express.json());
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            const ACCEPTED_ORIGINS = [
+                "http://localhost:8080",
+                "http://localhost:1234",
+                "http://midu.dev",
+                "http://movies.com",
+            ];
 
-const ACCEPTED_ORIGINS = [
-    "http://localhost:8080",
-    "http://localhost:1234",
-    "http://midu.dev",
-    "http://movies.com",
-];
+            if (ACCEPTED_ORIGINS.includes(origin)) {
+                return callback(null, true);
+            }
+
+            if (!origin) {
+                return callback(null, true);
+            }
+
+            return callback(new Error("Not allowed by CORS"));
+        },
+    })
+);
 
 app.delete("/movies/:id", (req, res) => {
-    const origin = req.header("origin");
-    if (ACCEPTED_ORIGINS.includes(origin) || !origin) {
-        // || !origin its needed because, if its the same origin,
-        // the browser does not include the origin header in the request
-        res.header("Access-Control-Allow-Origin", origin);
-    }
     const { id } = req.params;
     const movieIndex = movies.findIndex((movie) => movie.id === id);
 
@@ -38,12 +48,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/movies", (req, res) => {
-    const origin = req.header("origin");
-    if (ACCEPTED_ORIGINS.includes(origin) || !origin) {
-        // || !origin its needed because, if its the same origin,
-        // the browser does not include the origin header in the request
-        res.header("Access-Control-Allow-Origin", origin);
-    }
     const { genre } = req.query;
     if (genre) {
         const filteredMovies = movies.filter((movie) =>
@@ -110,18 +114,6 @@ app.patch("/movies/:id", (req, res) => {
     movies[movieIndex] = updatedMovie;
 
     return res.json(updatedMovie);
-});
-
-// this fixes CORS for PATCH/DELETE methods
-app.options("/movies/:id", (req, res) => {
-    const origin = req.header("origin");
-    if (ACCEPTED_ORIGINS.includes(origin) || !origin) {
-        // || !origin its needed because, if its the same origin,
-        // the browser does not include the origin header in the request
-        res.header("Access-Control-Allow-Origin", origin);
-        res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
-    }
-    res.sendStatus(200);
 });
 
 app.listen(PORT, () => {
